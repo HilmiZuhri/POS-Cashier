@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { products } from "@/dummies/product"; 
+import axios from 'axios'; 
 import type { TProduct } from "@/lib/model";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,18 +10,25 @@ import { useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, Plus, Minus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import SalesModal from '@/components/ui/sales-modal';
 import MemberModal from '@/components/ui/member-modal';
+import PrevButton from '@/components/ui/prev-button';
+import NextButton from '@/components/ui/next-button';
 
 export type TCartItem = TProduct & { quantity: number };
 
 const POSPage: React.FC = () => {
-  // For Cart's
+  // FOR CART'S (add, remove, summary & localStorage)
   const navigate = useNavigate();
+  const [cartSummary, setCartSummary] = useState<any>(null);
   const [cart, setCart] = useState<TCartItem[]>(() => 
     { const savedCart = localStorage.getItem("pos_cart");
       return savedCart ? JSON.parse(savedCart) : []; });
   const [searchQuery, setSearchQuery] = useState("");
   useEffect(() => {
     localStorage.setItem("pos_cart", JSON.stringify(cart));
+    const delayDebounceFn = setTimeout(() => {
+      calculateCart(cart);
+    }, 300);
+    return () => clearTimeout(delayDebounceFn);
   }, [cart]);
   const handleCheckout = () => {
    localStorage.setItem("pos_cart", JSON.stringify(cart));
@@ -62,6 +69,52 @@ const POSPage: React.FC = () => {
       );
     });
   };
+
+  // Logic: Calculate Cart Summary
+  const calculateCart = async (currentCart: TCartItem[]) => {
+  if (currentCart.length === 0) {
+    setCartSummary(null);
+    return;
+  }
+  try {
+    const token = localStorage.getItem('access_token');
+    const payload = {
+      customer_order_id: null, 
+      location_id: 5,          
+      order_type_id: 5,        
+      products: currentCart.map(item => ({
+        product_id: item.id,
+        quantity: item.quantity,
+        sell_price: item.sell_price,
+        brand_id: item.brand_id || 1,
+        customer_order_detail_id: item.customer_order_detail_id || 0,
+        product_category_id: item.product_category_id,
+        catalogue_detail_id: item.catalogue_detail_id || 1, 
+        product_unit_id: item.product_unit_id || 5,
+        order_type_id: 5,
+        custom_price: false
+      }))
+    };
+    const response = await axios.post(
+      "https://backend-dev.secacastore.com/api/kasir/customer_orders/calculate_promo",
+      payload,
+      {
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'x-employee-code': 'admin-zakiah',
+          'x-device-code': '8ee32711-54e4-4e45-b189-53e8b77a10db'
+        }
+      }
+    );
+
+    if (response.data && response.data.data) {
+      setCartSummary(response.data.data); 
+    }
+  } catch (error) {
+    console.error("Gagal menghitung promo/total:", error);
+  }
+};
 
   // For Sales
   interface SalesData {
@@ -112,69 +165,66 @@ const POSPage: React.FC = () => {
     p.sku.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Fetching API 
+  // Fetching API (with pagination cursor, product search)
   const fetchProducts = async (keyword: string, cursorToken: string | null = null) => {
-    try {  
-      setLoading(true);
-      const token = localStorage.getItem('access_token');
+  try {
+    setLoading(true);
+    const token = localStorage.getItem('access_token');
 
-      const baseUrl = "https://backend-dev.secacastore.com/api/kasir/catalogues/product_search?limit=16&filter_stock=true&location=5";
-      const url = new URL(baseUrl);
-
-      url.searchParams.set("keyword", keyword);
-
-      if (cursorToken) {
-        url.searchParams.set("cursor", cursorToken)
+    const response = await axios.get("https://backend-dev.secacastore.com/api/kasir/catalogues/product_search", {
+      params: {
+        limit: 16,
+        filter_stock: true,
+        location: 5,
+        keyword: keyword,
+        cursor: cursorToken 
+      },
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'x-employee-code': 'admin-zakiah',
+        'x-device-code': '8ee32711-54e4-4e45-b189-53e8b77a10db'
       }
+    });
 
-      const response = await fetch(url.toString(), {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'x-employee-code': 'admin-zakiah',
-          'x-device-code': '8ee32711-54e4-4e45-b189-53e8b77a10db'
-        }
-      });
+    const result = response.data;
+    console.log("Data :", result);
 
-      console.log("Status response:", response.status);
+    const actualData = Array.isArray(result.data) ? result.data : result.data.data || [];
+    console.log("Extracted Product Array:", actualData);
+    setProducts(actualData);
 
-      if (response.status === 401) {
-        console.error("Token expired");
-        return;
+    const getCursorValue = (urlStr: string | null | undefined) => {
+      if (!urlStr) return null;
+      try {
+        const urlObj = new URL(urlStr);
+        return urlObj.searchParams.get("cursor");
+      } catch (e) {
+        return urlStr;
       }
+    };
 
-      const result = await response.json();
-      console.log("Data :", result);
+    const nextLink = result.next_cursor || result.next_page_url || result.data?.next_page_url || result.data?.links?.next;
+    const prevLink = result.prev_cursor || result.prev_page_url || result.data?.prev_page_url || result.data?.links?.prev;
 
-      if (response.ok) {
-        const actualData = Array.isArray(result.data) ? result.data: result.data.data || [];
-        console.log("Extracted Product Array:", actualData);
-        setProducts(actualData);
-        const getCursorValue = (urlStr: string | null | undefined) => {
-          if (!urlStr) return null;
-          try {
-            const urlObj = new URL(urlStr);
-            return urlObj.searchParams.get("cursor");
-          } catch (e) {
-            return urlStr;
-          }
-        };
-        const nextLink = result.next_cursor || result.next_page_url || result.data?.next_page_url || result.data?.links?.next;
-        const prevLink = result.prev_cursor || result.prev_page_url || result.data?.prev_page_url || result.data?.links?.prev;
+    setNextCursor(getCursorValue(nextLink));
+    setPrevCursor(getCursorValue(prevLink));
 
-        setNextCursor(getCursorValue(nextLink));
-        setPrevCursor(getCursorValue(prevLink));
-
-        console.log("Next Cursor Token:", getCursorValue(nextLink));
-        console.log("Prev Cursor Token:", getCursorValue(prevLink));
+  } catch (error: any) {
+    if (error.response) {
+      if (error.response.status === 401) {
+        console.error("Token expired atau Unauthorized");
       }
-    } catch (error) {
-      console.error("API Connection Failed", error);
-    } finally {
-      setLoading(false);
+      console.error("Server Error:", error.response.status, error.response.data);
+    } else if (error.request) {
+      console.error("No Response from Server");
+    } else {
+      console.error("Axios Error:", error.message);
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -265,32 +315,9 @@ const POSPage: React.FC = () => {
       </div>
       {/* Controls Pagination */}
     <div className="py-3 border-t bg-white flex items-center justify-between mt-auto">
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 px-3"
-          disabled={!prevCursor || loading}
-          onClick={() => {
-            fetchProducts(searchQuery, prevCursor);
-          }}
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Prev
-        </Button>
-
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 px-3"
-          disabled={!nextCursor || loading}
-          onClick={() => {
-            fetchProducts(searchQuery, nextCursor);
-          }}
-        >
-          Next
-          <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
+      <div className="flex gap-2"> 
+        <PrevButton disabled={!prevCursor} loading={loading} onClick={() => fetchProducts(searchQuery, prevCursor)} />
+        <NextButton disabled={!nextCursor} loading={loading} onClick={() => fetchProducts(searchQuery, nextCursor)} />
       </div>
     </div>
    </div>
@@ -360,8 +387,14 @@ const POSPage: React.FC = () => {
          <div className="space-y-3 mb-6">
             <div className="flex justify-between text-slate-400 text-sm">
                <span>Subtotal</span>
-               <span>{formatIDR(totalPrice)}</span>
+               <span>{formatIDR(cartSummary?.subtotal || totalPrice)}</span>
             </div>
+            {cartSummary?.totalAmount < cartSummary?.subTotal && (
+              <div className="flex justify-between text-green-500 text-sm">
+                <span>Diskon Promo</span>
+                <span>-{formatIDR(cartSummary.subTotal - cartSummary.totalAmount)}</span>
+              </div>
+            )}
             <Separator className="bg-slate-700" />
             <div className="flex justify-between items-center">
                <span className="font-medium">Jumlah Total</span>

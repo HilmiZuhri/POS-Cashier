@@ -6,6 +6,9 @@ export type TProduct = {
     sku: string,
     product_category_id: number,
     product_unit_id: number,
+    brand_id: number,
+    customer_order_detail_id: number,
+    catalogue_detail_id: number,
     sell_price: number,
     barcode: string,
     product_unit: {

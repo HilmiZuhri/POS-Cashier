@@ -3,13 +3,7 @@ import { Users, Search, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-
-// ======== DUMMIES =========
-const salesData = [
-  { id: 1, name: "Balqis Sales" },
-  { id: 2, name: "Sabilatul Sales" },
-  { id: 3, name: "Syuaiba Sales" }
-];
+import axios from 'axios';
 
 interface SalesMember {
   id: number;
@@ -35,7 +29,11 @@ const SalesModal = ({ selectedSales, onSelect }: SalesModalProps) => {
         setLoading(true);
         try {
           const token = localStorage.getItem('access_token');
-          const response = await fetch('https://backend-dev.secacastore.com/api/kasir/employees?limit=100&loc_id=5', {
+          const response = await axios.get("https://backend-dev.secacastore.com/api/kasir/employees", {
+            params: {
+              limit: 100,
+              loc_id: 5
+            },
             headers: {
               'Accept': 'application/json',
               'Authorization': `Bearer ${token}`,
@@ -43,7 +41,7 @@ const SalesModal = ({ selectedSales, onSelect }: SalesModalProps) => {
               'x-device-code': '8ee32711-54e4-4e45-b189-53e8b77a10db'
             }
           });
-          const result = await response.json();
+          const result = response.data;
           setEmployees(result.data || []);
         } catch (err) {
           console.error("Failed fetching sales data:", err);
@@ -99,17 +97,18 @@ const SalesModal = ({ selectedSales, onSelect }: SalesModalProps) => {
          const fullName = `${sales.first_name} ${sales.last_name}`;
          return (
          <Button
-         key={sales.id}
-         variant="ghost" // Gunakan ghost agar lebih rapi untuk list
-         onClick={() => {
-         onSelect(fullName, sales.id);
-         setIsOpen(false);
-         setSearch(""); 
-         }}
-         className="w-full justify-between text-left p-3 rounded-lg hover:bg-slate-100 font-bold text-slate-700 transition-colors group"
-         >
-         <span className="truncate">{fullName}</span>
-         <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 text-primary transition-all" />
+            key={sales.id}
+            variant="ghost"
+            onClick={() =>
+            {
+            onSelect(fullName, sales.id);
+            setIsOpen(false);
+            setSearch(""); 
+            }}
+            className="w-full justify-between text-left p-3 rounded-lg hover:bg-slate-100 font-bold text-slate-700 transition-colors group"
+            >
+            <span className="truncate">{fullName}</span>
+            <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 text-primary transition-all" />
          </Button>
          );
          })
