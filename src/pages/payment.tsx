@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
+import { useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, CreditCard, QrCode, Receipt } from "lucide-react";
 import type { TCartItem } from './POS';
 import { useNavigate } from 'react-router-dom';
 import CashPaymentModal from '@/components/ui/numpad-modal';
+import ReceiptTemplate from '@/components/ui/receipt-template';
 import axios from 'axios';
 import { se } from 'date-fns/locale';
+import { set } from 'date-fns';
 
 const PaymentPage: React.FC = () => {
    const navigate = useNavigate();
@@ -16,6 +19,28 @@ const PaymentPage: React.FC = () => {
    const [finalCash, setFinalCash] = useState<number>(0);
    const [cartSummary, setCartSummary] = useState<any>(null);
    const [isLoading, setIsLoading] = useState(false);
+
+   // For Receipt Printing
+    const receiptRef = useRef<HTMLDivElement>(null);
+    const [successData, setSuccessData] = useState<any>(null);
+
+    useEffect(() => {
+      if (successData) {
+        const timer = setTimeout(() => {
+          window.print();
+          localStorage.removeItem("pos_cart");
+          navigate('/pos');
+        }, 300);
+
+        return () => clearTimeout(timer);
+      }
+    }, [successData, navigate]);
+
+    const handlePrint = () => {
+      setTimeout(() => {
+      window.print();
+    }, 100);
+    };
 
    const API_CONFIG = {
       headers: {
@@ -108,10 +133,25 @@ const PaymentPage: React.FC = () => {
 
          const response = await axios.post("https://backend-dev.secacastore.com/api/kasir/sale_transactions", payload, API_CONFIG);
 
+         // For Receipt Preview (using response data)
+      if (response.data.data?.id) {
+        setSuccessData({
+          transactionId: response.data.data.id,
+          date: new Date(). toLocaleString('id-Id'),
+          items: cart,
+          summary: cartSummary,
+          payment: {
+            method: paymentOptions.find(p => p.id === paymentMethodId)?.name || "Unknown",
+            received: isCashSelected ? finalCash : cartSummary.totalAmount,
+            change: isCashSelected ? (finalCash - cartSummary.totalAmount) : 0
+          }
+        });
+        localStorage.removeItem("pos_cart");
+      }
+
          if (response.data.data?.id) {
             localStorage.removeItem("pos_cart");
             alert("Transaksi Berhasil! ID");
-            navigate('/pos');
          }
       } catch (err) {
          console.error("Gagal memproses transaksi:", err);
@@ -119,7 +159,7 @@ const PaymentPage: React.FC = () => {
       } finally {
          setIsLoading(false);
       }
-   };
+    };
 
    // Helper Values
    const cashOption = paymentOptions.find(p => p.kind === 'cash');
@@ -128,7 +168,9 @@ const PaymentPage: React.FC = () => {
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
 
   return (
-<div className="flex gap-8 h-[calc(100vh-140px)] overflow-hidden p-4">
+    <>
+    { successData && <ReceiptTemplate data={successData} /> }
+<div className="flex gap-8 h-[calc(100vh-140px)] overflow-hidden p-4 print:hidden">
       {/* Kolom Kiri: Ringkasan Belanja */}
       <div className="flex-[1.5] bg-white border rounded-2xl p-8 flex flex-col">
         <button onClick={() => navigate('/pos')} className="flex items-center gap-2 text-slate-400 mb-6 font-bold text-sm">
@@ -229,6 +271,7 @@ const PaymentPage: React.FC = () => {
         </Card>
       </aside>
     </div>
+  </>
   );
 };
 

@@ -16,8 +16,8 @@ const NextButton = ({ onClick, disabled, loading }: NextButtonProps) => {
       disabled={disabled || loading}
       onClick={onClick}
     >
-      Next
       <ChevronRight className="h-4 w-4 ml-1" />
+      Next
     </Button>
   );
 };
