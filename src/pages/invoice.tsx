@@ -9,14 +9,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import FilterInvoiceModal from "@/components/ui/filter-invoice-modal";
 import PrevButton from '@/components/ui/prev-button';
 import NextButton from '@/components/ui/next-button';
-import { set } from 'date-fns';
+import { mockInvoices } from "@/dummies/invoices";
+import type { TInvoice } from '@/lib/model';
 
 const InvoicePage: React.FC = () => {
   const navigate = useNavigate();
   
   // States
-  const [invoices, setInvoices] = useState<any[]>([]);
-  const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
+  // const [invoices, setInvoices] = useState<any[]>([]);
+  const [selectedInvoice, setSelectedInvoice] = useState<TInvoice | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMode, setFilterMode] = useState<'me' | 'all'>('me');
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -64,7 +65,7 @@ const InvoicePage: React.FC = () => {
       setPrevCursor(getCursorValue(prevLink));
 
       if (res.data?.data) {
-        setInvoices(res.data.data);
+        // setInvoices(res.data.data);
       }
     } catch (err) {
       console.error("Gagal load riwayat:", err);
@@ -81,7 +82,7 @@ const InvoicePage: React.FC = () => {
   }, [filterMode]);
 
   // Logic: Invoice Filter 
-  const filteredInvoices = invoices.filter((inv) =>
+  const filteredInvoices = mockInvoices.filter((inv) =>
     inv.sales_no.toLowerCase().includes(searchQuery.toLowerCase()) || 
     inv.cashier_first_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -216,71 +217,43 @@ const handleSelectInvoice = (inv: any) => {
       
 
       {/* ========= Kolom Kanan: Detail ========= */}
-<aside className="flex-1 bg-white border-2 border-slate-100 rounded-3xl shadow-sm flex flex-col overflow-hidden">
-  {isDetailLoading ? (
-    <div className="flex-1 flex flex-col items-center justify-center gap-3">
-       <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-       <p className="text-[10px] font-black uppercase italic text-slate-400">Mengambil Data...</p>
-    </div>
-  ) : selectedInvoice && selectedInvoice.sale_transaction_details ? (
-    <>
-      <div className="p-6 border-b-2 border-dashed bg-slate-50/50 text-center">
-        <h3 className="font-black text-2xl tracking-tighter text-slate-800 italic uppercase">Detail Invoice</h3>
-        <p className="text-[10px] text-slate-400 font-mono mt-1 font-bold">{selectedInvoice.sales_no}</p>
+<aside className="flex-1 bg-white border rounded-2xl shadow-sm flex flex-col overflow-hidden">
+      {selectedInvoice ? (
+      <>
+      <div className="p-6 border-b bg-slate-50/50 text-center">
+         <h3 className="font-black text-xl tracking-tighter text-slate-800">DETAIL INVOICE</h3>
+         <p className="text-xs text-slate-400 font-mono mt-1">{selectedInvoice.invoice_number}</p>
       </div>
-      
       <ScrollArea className="flex-1 p-6">
-        <div className="space-y-6">
-          {/* List Barang */}
-          <div className="space-y-4">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Daftar Barang</p>
-            {selectedInvoice.sale_transaction_details.map((item: any, idx: number) => (
-              <div key={idx} className="flex justify-between items-start border-b border-slate-50 pb-3">
-                <div className="flex-1">
-                  <p className="font-bold text-slate-700 text-sm uppercase">{item.product_name || item.product?.name}</p>
-                  <p className="text-xs text-slate-400 font-medium">
-                    {item.quantity} {item.product_unit_name || 'PCS'} x {formatIDR(item.sell_price)}
-                  </p>
-                </div>
-                <p className="text-sm font-black text-slate-800 italic">{formatIDR(item.total_amount)}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Ringkasan Pembayaran */}
-          <div className="space-y-3 bg-slate-50 p-5 rounded-2xl border-2 border-slate-100">
-            <div className="flex justify-between text-xs font-bold text-slate-500 uppercase">
-              <span>Subtotal</span>
-              <span className="text-slate-800">{formatIDR(selectedInvoice.subtotal)}</span>
-            </div>
-            <div className="flex justify-between text-xs font-bold text-slate-500 uppercase">
-              <span>Pajak</span>
-              <span className="text-slate-800">{formatIDR(selectedInvoice.tax_amount || 0)}</span>
-            </div>
-            <div className="flex justify-between text-lg font-black text-primary pt-3 border-t-2 border-dashed border-slate-200 italic">
-              <span>TOTAL</span>
-              <span>{formatIDR(selectedInvoice.net_sales_after_tax)}</span>
-            </div>
-          </div>
-
-          {/* Info Pembayaran (Tunai/Non-Tunai) */}
-          {selectedInvoice.sale_transaction_payments && selectedInvoice.sale_transaction_payments.length > 0 && (
-            <div className="p-4 rounded-xl border-2 border-slate-100 space-y-2">
-               <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase">
-                  <span>Metode</span>
-                  <span>{selectedInvoice.sale_transaction_payments[0].payment_method_name}</span>
+         <div className="space-y-6">
+            <div className="space-y-4">
+               {selectedInvoice.items.map((item, idx) => (
+               <div key={idx} className="flex justify-between items-start border-b border-slate-50 pb-3">
+                  <div className="text-sm flex-1 pr-4">
+                     <p className="font-bold text-slate-700">{item.product.name}</p>
+                     <p className="text-xs text-slate-400">
+                        {item.quantity} x {formatIDR(item.product.sell_price)}
+                     </p>
+                  </div>
+                  <p className="text-sm font-bold text-slate-800">{formatIDR(item.subtotal)}</p>
                </div>
-               <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase">
-                  <span>Diterima</span>
-                  <span className="text-slate-800">{formatIDR(selectedInvoice.sale_transaction_payments[0].amount_receive)}</span>
+               ))}
+            </div>
+            <div className="space-y-2 bg-slate-50 p-4 rounded-xl border border-dashed border-slate-200">
+               <div className="flex justify-between text-sm text-slate-500">
+                  <span>Total Harga</span>
+                  <span className="font-semibold text-slate-700">{formatIDR(selectedInvoice.total_price)}</span>
                </div>
-               <div className="flex justify-between text-xs font-black text-green-600 uppercase border-t pt-2">
+               <div className="flex justify-between text-sm text-slate-500">
+                  <span>Bayar (Tunai)</span>
+                  <span>{formatIDR(selectedInvoice.total_paid)}</span>
+               </div>
+               <div className="flex justify-between text-lg font-black text-primary pt-2 border-t">
                   <span>Kembalian</span>
-                  <span>{formatIDR(selectedInvoice.sale_transaction_payments[0].change)}</span>
+                  <span>{formatIDR(selectedInvoice.total_return)}</span>
                </div>
             </div>
-          )}
-        </div>
+         </div>
       </ScrollArea>
 
       <div className="p-6 border-t-2 bg-white flex gap-3">

@@ -12,10 +12,15 @@ import SalesModal from '@/components/ui/sales-modal';
 import MemberModal from '@/components/ui/member-modal';
 import PrevButton from '@/components/ui/prev-button';
 import NextButton from '@/components/ui/next-button';
+import { products } from '@/dummies/product';
 
 export type TCartItem = TProduct & { quantity: number };
 
-const POSPage: React.FC = () => {
+interface POSPageProps {
+  oncheckout: (cart: TCartItem[]) => void;
+}
+
+const POSPage: React.FC<POSPageProps> = ({ oncheckout }) => {
   // FOR CART'S (add, remove, summary & localStorage)
   const navigate = useNavigate();
   const [cartSummary, setCartSummary] = useState<any>(null);
@@ -86,10 +91,7 @@ const POSPage: React.FC = () => {
         product_id: item.id,
         quantity: item.quantity,
         sell_price: item.sell_price,
-        brand_id: item.brand_id || 1,
-        customer_order_detail_id: item.customer_order_detail_id || 0,
         product_category_id: item.product_category_id,
-        catalogue_detail_id: item.catalogue_detail_id || 1, 
         product_unit_id: item.product_unit_id || 5,
         order_type_id: 5,
         custom_price: false
@@ -156,7 +158,7 @@ const POSPage: React.FC = () => {
   }, [selectedMember]);
 
   // For API's
-  const [products, setProducts] = useState<TProduct[]>([]);
+  // const [products, setProducts] = useState<TProduct[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Product filter
@@ -192,7 +194,7 @@ const POSPage: React.FC = () => {
 
     const actualData = Array.isArray(result.data) ? result.data : result.data.data || [];
     console.log("Extracted Product Array:", actualData);
-    setProducts(actualData);
+    // setProducts(actualData);
 
     const getCursorValue = (urlStr: string | null | undefined) => {
       if (!urlStr) return null;
@@ -265,16 +267,8 @@ const POSPage: React.FC = () => {
    </div>
    <div className="flex-1 min-h-0">
       <ScrollArea className="h-full pr-4">
-         {loading ? (
-         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-            {[...Array(8)].map((_, i) => (
-            <div key={i} className="h-32 bg-slate-100 animate-pulse rounded-xl" />
-               ))}
-            </div>
-            ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 pb-10">
-               {products.length > 0 ? (
-               products.map((product) => (
+              {filteredProducts.map((product) => (
                <Card 
                   key={product.id}
                   onClick={() =>
@@ -287,7 +281,7 @@ const POSPage: React.FC = () => {
                      {product.sku || product.code || "NO-SKU"}
                      </span>
                      <div className="bg-white px-2 py-0.5 rounded text-[10px] font-bold border shadow-sm shrink-0">
-                        STOK: {product.product_location_stock?.stock ?? 0}
+                        STOK: {product.product_location_stock.stock}
                      </div>
                   </div>
                   {/* Nama & Harga */}
@@ -303,14 +297,8 @@ const POSPage: React.FC = () => {
                      </div>
                   </div>
                </Card>
-               ))
-               ) : (
-               <div className="col-span-full py-20 text-center">
-                  <p className="text-slate-400 italic text-sm">Produk tidak ditemukan...</p>
-               </div>
-               )}
+               ))}
             </div>
-            )}
       </ScrollArea>
       </div>
       {/* Controls Pagination */}

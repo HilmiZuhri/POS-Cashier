@@ -18,7 +18,7 @@ const StokPage = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get("https://backend-dev.secacastore.com/api/kasir/catalogues/product_search", {
+      const response = await axios.get("https://backend-reborn.secacastore.com/api/kasir/catalogues/product_search", {
         params: {
           limit: 16,
           location: 5,
@@ -29,7 +29,7 @@ const StokPage = () => {
           'Accept': 'application/json',
           'Authorization': `Bearer ${token}`,
           'x-employee-code': 'admin-zakiah',
-          'x-device-code': '8ee32711-54e4-4e45-b189-53e8b77a10db'
+          'x-device-code': '4f9deff9-80f7-4eb7-b3b8-08a49a41f3fc'
         }
       });
       const result = response.data;
@@ -45,7 +45,7 @@ const StokPage = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get("https://backend-dev.secacastore.com/api/kasir/product_location_stocks", {
+      const response = await axios.get("https://backend-reborn.secacastore.com/api/kasir/product_location_stocks", {
          params: {
           limit: 100,
           prod_id: product.id
@@ -54,7 +54,7 @@ const StokPage = () => {
             'Accept': 'application/json',
             'Authorization': `Bearer ${token}`,
             'x-employee-code': 'admin-zakiah',
-            'x-device-code': '8ee32711-54e4-4e45-b189-53e8b77a10db'
+            'x-device-code': '4f9deff9-80f7-4eb7-b3b8-08a49a41f3fc'
         }
       });
       const result = response.data;
@@ -71,12 +71,12 @@ const StokPage = () => {
 
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get(`https://backend-dev.secacastore.com/api/kasir/product_location_stocks/${branchData.id}`, {
+      const response = await axios.get(`https://backend-reborn.secacastore.com/api/kasir/product_location_stocks/${branchData.id}`, {
          headers: {
             'Accept': 'application/json',
             'Authorization': `Bearer ${token}`,
             'x-employee-code': 'admin-zakiah',
-            'x-device-code': '8ee32711-54e4-4e45-b189-53e8b77a10db'
+            'x-device-code': '4f9deff9-80f7-4eb7-b3b8-08a49a41f3fc'
         }
       });
       const result = response.data;
