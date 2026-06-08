@@ -18,7 +18,7 @@ const StokPage = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get("https://backend-reborn.secacastore.com/api/kasir/catalogues/product_search", {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/kasir/catalogues/product_search`, {
         params: {
           limit: 16,
           location: 5,
@@ -45,7 +45,7 @@ const StokPage = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get("https://backend-reborn.secacastore.com/api/kasir/product_location_stocks", {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/kasir/product_location_stocks`, {
          params: {
           limit: 100,
           prod_id: product.id
@@ -71,7 +71,7 @@ const StokPage = () => {
 
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get(`https://backend-reborn.secacastore.com/api/kasir/product_location_stocks/${branchData.id}`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/kasir/product_location_stocks/${branchData.id}`, {
          headers: {
             'Accept': 'application/json',
             'Authorization': `Bearer ${token}`,
