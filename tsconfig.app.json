@@ -18,7 +18,7 @@
 
     /* Path Alias - HARUS DI DALAM compilerOptions */
     "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
+    //"ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["./src/*"]
     },

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, Plus, Minus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ShoppingCart, Plus, Minus, Trash2 } from "lucide-react";
 import SalesModal from '@/components/ui/sales-modal';
 import MemberModal from '@/components/ui/member-modal';
 import PrevButton from '@/components/ui/prev-button';
@@ -16,11 +16,8 @@ import { products } from '@/dummies/product';
 
 export type TCartItem = TProduct & { quantity: number };
 
-interface POSPageProps {
-  oncheckout: (cart: TCartItem[]) => void;
-}
 
-const POSPage: React.FC<POSPageProps> = ({ oncheckout }) => {
+const POSPage: React.FC = () => {
   // FOR CART'S (add, remove, summary & localStorage)
   const navigate = useNavigate();
   const [cartSummary, setCartSummary] = useState<any>(null);
