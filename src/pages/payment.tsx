@@ -1,15 +1,12 @@
-import React, { use, useEffect, useState } from 'react';
-import { useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, CreditCard, QrCode, Receipt } from "lucide-react";
+import { ArrowLeft, CreditCard, QrCode} from "lucide-react";
 import type { TCartItem } from './POS';
 import { useNavigate } from 'react-router-dom';
 import CashPaymentModal from '@/components/ui/numpad-modal';
 import ReceiptTemplate from '@/components/ui/receipt-template';
 import axios from 'axios';
-import { se } from 'date-fns/locale';
-import { set } from 'date-fns';
 
 const PaymentPage: React.FC = () => {
    const navigate = useNavigate();
@@ -21,7 +18,6 @@ const PaymentPage: React.FC = () => {
    const [isLoading, setIsLoading] = useState(false);
 
    // For Receipt Printing
-    const receiptRef = useRef<HTMLDivElement>(null);
     const [successData, setSuccessData] = useState<any>(null);
 
     useEffect(() => {
@@ -35,12 +31,6 @@ const PaymentPage: React.FC = () => {
         return () => clearTimeout(timer);
       }
     }, [successData, navigate]);
-
-    const handlePrint = () => {
-      setTimeout(() => {
-      window.print();
-    }, 100);
-    };
 
    const API_CONFIG = {
       headers: {
@@ -122,8 +112,6 @@ const PaymentPage: React.FC = () => {
                customer_order_detail_id: 0,
                custom_price: false,
                product: { id: item.id, name: item.name, sku: item.sku, code: item.code },
-               brand: { id: item.brand_id || 1, name: "Zakiah" },
-               brand_id: item.brand_id || 1,
                product_category: { id: item.product_category_id, name: "Category" },
                product_unit: { id: item.product_unit_id, name: "PCS" },
                order_type: { id: 5, name: "Ecer" },

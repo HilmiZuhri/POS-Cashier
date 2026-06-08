@@ -1,5 +1,3 @@
-// src/components/layout/Sidebar.tsx
-import React from 'react';
 import { LayoutDashboard, Receipt, BarChart3, Boxes } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from 'react-router-dom';

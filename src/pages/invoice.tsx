@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Search, Filter, User, FileText, Receipt, Printer, RotateCcw } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
@@ -94,11 +94,9 @@ const InvoicePage: React.FC = () => {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [prevCursor, setPrevCursor] = useState<string | null>(null);
 
-  const [isDetailLoading, setIsDetailLoading] = useState(false);
 
 // Fungsi Fetch Detail Invoice
 const fetchInvoiceDetail = async (id: number) => {
-  setIsDetailLoading(true);
   try {
     const url = `https://backend-dev.secacastore.com/api/kasir/sale_transactions/${id}`;
     const res = await axios.get(url, {
@@ -117,7 +115,7 @@ const fetchInvoiceDetail = async (id: number) => {
   } catch (err) {
     console.error("Gagal load detail invoice:", err);
   } finally {
-    setIsDetailLoading(false);
+    console.log("Finished fetching invoice detail");
   }
 };
 

@@ -37,15 +37,6 @@ const POSPage: React.FC = () => {
    navigate('/payment');
   };
 
-  const handleClearCart = () => {
-    setCart([]);
-    setSelectedSales(null);
-    setSelectedMember(null);
-    localStorage.removeItem("pos_cart");
-    localStorage.removeItem("pos_selected_sales");
-    localStorage.removeItem("pos_selected_member");
-  }
-
   // Logic: Add to cart
   const addToCart = (product: TProduct) => {
     setCart((current) => {

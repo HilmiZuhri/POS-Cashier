@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from '@/components/ui/textarea';
@@ -10,7 +10,7 @@ const RefundPage = () => {
   const navigate = useNavigate();
   
   // State dummy untuk produk yang bisa di-refund
-  const [items, setItems] = useState([
+  const [items] = useState([
     { id: 1, name: "Jarum pentul 5K", price: 5000, sku: "910403202336", qty: 1 },
     { id: 2, name: "Kartu Ucapan Kecil", price: 2000, sku: "9928062021002", qty: 1 },
   ]);

@@ -387,12 +387,3 @@ export const products: TProduct[] = [
     }
 ]
 
-const data = {
-    "data": products,
-    "path": "https:\/\/backend-reborn.secacastore.com\/api\/kasir\/catalogues\/product_search",
-    "per_page": 16,
-    "next_cursor": "eyJwcm9kdWN0cy5pZCI6Mjk2NiwiX3BvaW50c1RvTmV4dEl0ZW1zIjp0cnVlfQ",
-    "next_page_url": "https:\/\/backend-reborn.secacastore.com\/api\/kasir\/catalogues\/product_search?location=5&filter_stock=true&limit=16&cursor=eyJwcm9kdWN0cy5pZCI6Mjk2NiwiX3BvaW50c1RvTmV4dEl0ZW1zIjp0cnVlfQ",
-    "prev_cursor": null,
-    "prev_page_url": null
-}

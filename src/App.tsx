@@ -1,7 +1,6 @@
 import POSPage from "./pages/POS"
 import InvoicePage from "./pages/invoice"
 import Sidebar from "./components/ui/sidebar"
-import { useState } from "react"
 import RekapPage from "./pages/rekap"
 import StokPage from "./pages/product-stock"
 import PaymentPage from "./pages/payment"
